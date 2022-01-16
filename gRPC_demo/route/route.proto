@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option go_package = "gRPC_demo/route";
+
+package route;
+
+/*
+gRPC的四个方法
+1. GetFeature (输入为一个Point, 返回这个点的Feature)
+2. ListFeatures(输入为一个Rectangle. 输入流这个区域内所有的Fearture)
+3. RecordRoute (输入流为每个时间点的位置Point, 返回一个RouteSummaryu)
+4. Recommend (输入流recommendationRequest, 输出流Feature)
+protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative route.proto
+*/
+
+message Point {
+    int32 latitude = 1;
+    int32 longitude = 2;
+}
+
+message Rectangle {
+    Point lo = 1;
+    Point hi = 2;
+}
+
+message Feature {
+    string name = 1;
+    Point location = 2;
+}
+
+message RouteSummary {
+    int32 point_count = 1;
+    int32 distance = 2;
+    int32 elapsed_time = 3;
+}
+
+enum RecommendationMode {
+    GetFarthest = 0;
+    GetNearest = 1;
+}
+
+message RecommendationRequest {
+    RecommendationMode mode = 1;
+    Point Point = 2;
+}
+
+service RouteGuide {
+    // unary
+    rpc GetFeature(Point) returns (Feature) {}
+
+    // server side streaming
+    rpc ListFeatures(Rectangle) returns (stream Feature) {}
+
+    // client side streaming
+    rpc RecordRoute(stream Point) returns (RouteSummary) {}
+
+    // bidirectional streaming
+    rpc Recommend(stream RecommendationRequest) returns(stream Feature) {}
+}
